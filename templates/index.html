@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+  {% if count > 0 %}
+    <p>{{ count }} images. Latest: <strong>{{ latestTimestamp }}</strong>.</p>
+  {% else %}
+    <p>No images found.</p>   
+  {% endif %}
+  
+  {% if count > 0 %}
+  <form action="{{ path('archive-move') }}" method="post">
+    <input type="hidden" name="files" value="{{ files }}" />
+    <button type="submit" name="submit" class="btn btn-primary btn-sm">Archive images</button>
+  </form>
+  {% endif %}
+
+  <div id="thumbnails">
+  {% for image in images %}
+    <div class="thumbnail">
+      <a href="/images/{{ image.url }}">
+      {% if hasLazyImageLoading %}
+        <img data-src="{{ app.url_generator.generate('thumbnail', {file: image.url}) }}" src="/img/blank.png" width="{{ image.thumbnailWidth }}" height="{{ image.thumbnailHeight }}" alt="{{ image.url }}">
+      {% else %}
+        <img src="{{ app.url_generator.generate('thumbnail', {file: image.url}) }}" width="{{ image.thumbnailWidth }}" height="{{ image.thumbnailHeight }}" alt="{{ image.url }}">
+      {% endif %}
+      </a>
+      <div class="caption">{{ image.timestamp }}</div>
+    </div>
+  {% endfor %}
+  </div>
+
+{% endblock %}

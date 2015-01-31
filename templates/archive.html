@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+  <p>Found {{ count }} archived images.</p>
+
+  <div id="thumbnails">
+  {% for image in images %}
+    <div class="thumbnail">
+      <a href="/images/archive/{{ image.url }}">
+      {% if hasLazyImageLoading %}
+        <img data-src="{{ app.url_generator.generate('thumbnail', {file: image.url}) }}" src="/img/blank.png" width="{{ image.thumbnailWidth }}" height="{{ image.thumbnailHeight }}" alt="{{ image.url }}">
+      {% else %}
+        <img src="{{ app.url_generator.generate('thumbnail', {file: image.url}) }}" width="{{ image.thumbnailWidth }}" height="{{ image.thumbnailHeight }}" alt="{{ image.url }}">
+      {% endif %}
+      </a>
+      <div class="caption">{{ image.timestamp }}</div>
+    </div>
+  {% endfor %}
+  </div>
+
+{% endblock %}
