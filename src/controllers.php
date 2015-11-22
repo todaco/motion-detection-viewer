@@ -20,6 +20,7 @@ $app->get('/', function (Request $request) use ($app) {
     'sideFiles'           => $thumbnailService->getSideFileNames(),
     'subfolders'          => $thumbnailService->getSubfolders($imagesPath),
     'hasLazyImageLoading' => $app['config']['lazyImageLoading'],
+    'folder'              => $subfolder,
   );
 
   return $app['twig']->render('index.html', $data);
@@ -39,6 +40,26 @@ $app->get('/thumbnails/{file}', function ($file, Request $request) use ($app) {
   return $app->sendFile($image, 200, ['Content-Type' => 'image/jpeg']);
 })
 ->bind('thumbnail');
+
+$app->get('/archive-all/', function (Request $request) use ($app) {
+
+    $sourceDir = $app['config']['imagesPath'];
+    $destinationDir = $app['config']['imagesArchivePath'];
+
+    $thumbnailService = $app['thumbnail_service'];
+    $imageTimestampFunction = $app['config']['imageTimestampFunction'];
+
+    $thumbnailService->retrieve($sourceDir, $imageTimestampFunction, 'archive', true);
+    $filenames = explode(',', $thumbnailService->getFileNames());
+    $sideFilenames = explode(',', $thumbnailService->getSideFileNames());
+
+    $thumbnailService->moveToArchive($filenames, $sourceDir, $destinationDir);
+    $thumbnailService->moveToArchive($sideFilenames, $sourceDir, $destinationDir);
+
+    return new Response(sprintf('Finished. %s images archives.', count($filenames)));
+
+})
+->bind('archive-move-all');
 
 // archive images
 $app->post('/archive/', function (Request $request) use ($app) {

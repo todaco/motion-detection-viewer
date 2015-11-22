@@ -93,8 +93,9 @@ class ImageThumbnailService
      * @param string $imagesPath  images directory
      * @param $imageTimestampFunction
      * @param string $folder
+     * @param bool $excludeFolder
      */
-  public function retrieve($imagesPath, $imageTimestampFunction, $folder = '')
+  public function retrieve($imagesPath, $imageTimestampFunction, $folder = '', $excludeFolder = false)
   {
 
     $sortByName = function(\SplFileInfo $a, \SplFileInfo $b)
@@ -108,11 +109,16 @@ class ImageThumbnailService
 
     $finder = $this->getFinder();
     $finder->files()
-      ->in($imagesPath) 
-      ->path($folder)
+      ->in($imagesPath)
       ->name('/\.jpg/')
       ->size('>0')
       ->sort($sortByName);
+
+    if($folder !== '' and $excludeFolder === false) {
+        $finder->path($folder . DIRECTORY_SEPARATOR);
+    } elseif($folder !== '' and $excludeFolder === true) {
+        $finder->exclude($folder);
+    }
 
     $fileNames = array();
     $images = array();
@@ -134,9 +140,15 @@ class ImageThumbnailService
     $sideFinder = $this->getSideFinder();
     $sideFinder->files()
       ->in($imagesPath)
-      ->path($folder)
       ->notName('/\.jpg/')
       ->sortByName();
+
+    if($folder !== '' and $excludeFolder === false) {
+        $sideFinder->path($folder . DIRECTORY_SEPARATOR);
+    } elseif($folder !== '' and $excludeFolder === true) {
+        $sideFinder->exclude($folder);
+    }
+
     $sideFilenames = array();
     foreach($sideFinder as $sideFile) {
       $sideFilenames[] = $sideFile->getRelativePathname();
@@ -268,7 +280,7 @@ class ImageThumbnailService
     // $image->rotateImage(new ImagickPixel(), 270); // rotate image
     $image->thumbnailImage($this->getWidth(), $this->getHeight(), true);
 
-    $outputImage = $thumbnailsPath . DIRECTORY_SEPARATOR . $file;
+    $outputImage = $thumbnailsPath . DIRECTORY_SEPARATOR . str_replace('archive,', '', $file);
     $image->writeImage($outputImage);
 
     return $outputImage;
